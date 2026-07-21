@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import pool from "./config/database";
+import init from "./init";
 import seed from "./seed";
 
 dotenv.config();
@@ -21,6 +22,7 @@ async function start() {
     await pool.query("SELECT 1");
     console.log("Database connected.");
 
+    await init();
     await seed();
 
     app.listen(PORT, () => {
