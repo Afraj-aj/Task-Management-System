@@ -2,7 +2,7 @@ import { Response } from "express";
 import { z } from "zod";
 import pool from "../config/database";
 import { AuthRequest } from "../middleware/auth";
-import { sendSuccess, sendError } from "../utils/response";
+import { sendSuccess, sendSuccessWithPagination, sendError } from "../utils/response";
 
 const createTaskSchema = z.object({
   title: z.string().trim().min(1, "Title is required"),
@@ -23,11 +23,63 @@ const updateTaskSchema = z.object({
 export async function getTasks(req: AuthRequest, res: Response) {
   try {
     const userId = req.user!.userId;
-    const result = await pool.query(
-      "SELECT * FROM tasks WHERE user_id = $1 ORDER BY created_at DESC",
-      [userId]
+    const { search, status, priority, sort, page = "1", limit = "10" } = req.query as Record<string, string>;
+
+    // Build WHERE clause
+    let whereClause = "WHERE user_id = $1";
+    const params: unknown[] = [userId];
+    let paramIndex = 2;
+
+    // Search by title
+    if (search) {
+      whereClause += ` AND title ILIKE $${paramIndex}`;
+      params.push(`%${search}%`);
+      paramIndex++;
+    }
+
+    // Filter by status
+    if (status) {
+      whereClause += ` AND status = $${paramIndex}`;
+      params.push(status);
+      paramIndex++;
+    }
+
+    // Filter by priority
+    if (priority) {
+      whereClause += ` AND priority = $${paramIndex}`;
+      params.push(priority);
+      paramIndex++;
+    }
+
+    // Sort
+    let orderClause = "ORDER BY created_at DESC";
+    if (sort === "oldest") orderClause = "ORDER BY created_at ASC";
+    if (sort === "due_date") orderClause = "ORDER BY due_date ASC";
+
+    // Pagination
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit) || 10));
+    const offset = (pageNum - 1) * limitNum;
+
+    // Get total count
+    const countResult = await pool.query(
+      `SELECT COUNT(*) FROM tasks ${whereClause}`,
+      params
     );
-    sendSuccess(res, result.rows, "Tasks retrieved");
+    const total = parseInt(countResult.rows[0].count);
+
+    // Get tasks with pagination
+    const result = await pool.query(
+      `SELECT * FROM tasks ${whereClause} ${orderClause} LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+      [...params, limitNum, offset]
+    );
+
+    sendSuccessWithPagination(
+      res,
+      result.rows,
+      { total, page: pageNum, limit: limitNum, totalPages: Math.ceil(total / limitNum) },
+      "Tasks retrieved"
+    );
   } catch (error) {
     console.error("Get tasks error:", error);
     sendError(res, "Server error");
