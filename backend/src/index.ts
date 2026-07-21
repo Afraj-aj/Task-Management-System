@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import pool from "./config/database";
 import init from "./init";
 import seed from "./seed";
+import authRoutes from "./routes/authRoutes";
 
 dotenv.config();
 
@@ -16,6 +17,8 @@ app.use(express.json());
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
+
+app.use("/api/auth", authRoutes);
 
 async function start() {
   try {
