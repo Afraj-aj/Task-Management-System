@@ -1,19 +1,9 @@
--- Default user: admin@test.com / password: 123456
--- Password hash generated with bcrypt (10 rounds)
+-- Default user credentials:
+-- Email: admin@test.com
+-- Password: 123456
+--
+-- NOTE: Password is hashed in the backend seed script (src/seed.ts)
+-- Do NOT insert plain text passwords directly into the database.
+-- Run the server (npm run dev) to auto-seed the default user.
 
-INSERT INTO users (name, email, password)
-VALUES (
-  'Admin',
-  'admin@test.com',
-  '$2b$10$8K1p/a0dL1LXMc.0SZ0w3OQH2xKGPKwHFt4EAURT7ORvlvdoUByVq'
-)
-ON CONFLICT (email) DO NOTHING;
-
--- Sample tasks
-INSERT INTO tasks (user_id, title, description, priority, status, due_date)
-VALUES
-  (1, 'Complete project documentation', 'Write README and API docs', 'High', 'Pending', CURRENT_DATE + INTERVAL '3 days'),
-  (1, 'Fix login bug', 'Users cannot login with special characters', 'High', 'In Progress', CURRENT_DATE + INTERVAL '1 day'),
-  (1, 'Design landing page', 'Create wireframes and mockups', 'Medium', 'Pending', CURRENT_DATE + INTERVAL '7 days'),
-  (1, 'Write unit tests', 'Add tests for auth and task controllers', 'Low', 'Pending', CURRENT_DATE + INTERVAL '14 days'),
-  (1, 'Database optimization', 'Add indexes and optimize queries', 'Medium', 'Completed', CURRENT_DATE - INTERVAL '2 days');
+-- Sample tasks will also be created automatically by the seed script.
