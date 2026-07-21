@@ -5,6 +5,7 @@ import pool from "./config/database";
 import init from "./init";
 import seed from "./seed";
 import authRoutes from "./routes/authRoutes";
+import taskRoutes from "./routes/taskRoutes";
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.get("/api/health", (_req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/tasks", taskRoutes);
 
 async function start() {
   try {
