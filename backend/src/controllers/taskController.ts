@@ -9,7 +9,11 @@ const createTaskSchema = z.object({
   description: z.string().optional(),
   priority: z.enum(["Low", "Medium", "High"], { message: "Priority must be Low, Medium, or High" }),
   status: z.enum(["Pending", "In Progress", "Completed"]).optional().default("Pending"),
-  due_date: z.string().min(1, "Due date is required"),
+  due_date: z.string().min(1, "Due date is required").refine((val) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return new Date(val) >= today;
+  }, "Due date cannot be earlier than today"),
 });
 
 const updateTaskSchema = z.object({
@@ -156,6 +160,16 @@ export async function updateTask(req: AuthRequest, res: Response) {
     const current = existing.rows[0];
     const isCompleted = current.status === "Completed";
     const { title, description, priority, status, due_date } = parsed.data;
+
+    // Validate due_date only if task is not completed and due_date is provided
+    if (!isCompleted && due_date) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (new Date(due_date) < today) {
+        sendError(res, "Due date cannot be earlier than today", 400);
+        return;
+      }
+    }
 
     const result = await pool.query(
       `UPDATE tasks
