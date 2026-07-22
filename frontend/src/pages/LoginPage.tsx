@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
-import { LogIn, Sparkles } from "lucide-react";
+import { ListTodo } from "lucide-react";
 import { toast } from "react-toastify";
 
 export default function LoginPage() {
@@ -47,7 +47,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md glass-strong rounded-3xl p-8 relative z-10 animate-fade-in-up glow-gold">
         <div className="flex flex-col items-center mb-8">
           <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-primary/30 animate-float">
-            <Sparkles className="text-white" size={30} />
+            <ListTodo className="text-white" size={30} />
           </div>
           <h1 className="text-2xl font-bold text-text">TaskFlow</h1>
           <p className="text-text-secondary mt-1 text-sm">Sign in to manage your tasks</p>

@@ -193,6 +193,48 @@ export async function updateTask(req: AuthRequest, res: Response) {
   }
 }
 
+export async function getTaskStats(req: AuthRequest, res: Response) {
+  try {
+    const userId = req.user!.userId;
+
+    const result = await pool.query(
+      `SELECT
+         COUNT(*)::int AS total,
+         COUNT(*) FILTER (WHERE status = 'Pending')::int AS pending,
+         COUNT(*) FILTER (WHERE status = 'In Progress')::int AS in_progress,
+         COUNT(*) FILTER (WHERE status = 'Completed')::int AS completed,
+         COUNT(*) FILTER (WHERE status != 'Completed' AND due_date < CURRENT_DATE)::int AS overdue
+       FROM tasks WHERE user_id = $1`,
+      [userId]
+    );
+
+    sendSuccess(res, result.rows[0], "Stats retrieved");
+  } catch (error) {
+    console.error("Get stats error:", error);
+    sendError(res, "Server error");
+  }
+}
+
+export async function getDueSoon(req: AuthRequest, res: Response) {
+  try {
+    const userId = req.user!.userId;
+
+    const result = await pool.query(
+      `SELECT * FROM tasks
+       WHERE user_id = $1
+         AND status != 'Completed'
+         AND due_date <= NOW() + INTERVAL '1 day'
+       ORDER BY due_date ASC`,
+      [userId]
+    );
+
+    sendSuccess(res, result.rows, "Due soon tasks retrieved");
+  } catch (error) {
+    console.error("Get due soon error:", error);
+    sendError(res, "Server error");
+  }
+}
+
 export async function deleteTask(req: AuthRequest, res: Response) {
   try {
     const userId = req.user!.userId;

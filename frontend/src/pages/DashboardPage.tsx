@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import api from "../api/axios";
-import { type Task, type Pagination as PaginationType } from "../types";
-import { Plus, LogOut, Moon, Sun, Sparkles, ClipboardList } from "lucide-react";
+import { type Task, type TaskStats, type Pagination as PaginationType } from "../types";
+import { Plus, LogOut, Moon, Sun, ListTodo, ClipboardList } from "lucide-react";
 import { toast } from "react-toastify";
 import DashboardStats from "../components/dashboard/DashboardStats";
+import DueDateAlerts from "../components/dashboard/DueDateAlerts";
 import TaskCard from "../components/tasks/TaskCard";
 import TaskForm from "../components/tasks/TaskForm";
 import TaskFilters from "../components/tasks/TaskFilters";
@@ -20,6 +21,7 @@ export default function DashboardPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [pagination, setPagination] = useState<PaginationType>({ total: 0, page: 1, limit: 10, totalPages: 0 });
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<TaskStats>({ total: 0, pending: 0, in_progress: 0, completed: 0, overdue: 0 });
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
@@ -51,21 +53,23 @@ export default function DashboardPage() {
     }
   }, [search, status, priority, sort, page]);
 
+  const fetchStats = useCallback(async () => {
+    try {
+      const response = await api.get("/tasks/stats");
+      setStats(response.data.data);
+    } catch {
+      // error handled silently
+    }
+  }, []);
+
   useEffect(() => {
     fetchTasks();
-  }, [fetchTasks]);
+    fetchStats();
+  }, [fetchTasks, fetchStats]);
 
   useEffect(() => {
     setPage(1);
   }, [search, status, priority, sort]);
-
-  const stats = {
-    total: pagination.total,
-    pending: tasks.filter((t) => t.status === "Pending").length,
-    inProgress: tasks.filter((t) => t.status === "In Progress").length,
-    completed: tasks.filter((t) => t.status === "Completed").length,
-    overdue: tasks.filter((t) => t.status !== "Completed" && new Date(t.due_date) < new Date(new Date().toDateString())).length,
-  };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -75,6 +79,7 @@ export default function DashboardPage() {
       toast.success("Task deleted successfully!");
       setDeleteTarget(null);
       fetchTasks();
+      fetchStats();
     } catch (err: any) {
       const msg = err.response?.data?.message || "Failed to delete task";
       toast.error(msg);
@@ -87,6 +92,19 @@ export default function DashboardPage() {
     setShowForm(false);
     setEditingTask(null);
     fetchTasks();
+    fetchStats();
+  };
+
+  const handleStatusChange = async (task: Task, newStatus: string) => {
+    try {
+      await api.put(`/tasks/${task.id}`, { status: newStatus });
+      toast.success(`Task marked as ${newStatus}`);
+      fetchTasks();
+      fetchStats();
+    } catch (err: any) {
+      const msg = err.response?.data?.message || "Failed to update status";
+      toast.error(msg);
+    }
   };
 
   const greeting = () => {
@@ -105,7 +123,7 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Sparkles className="text-white" size={18} />
+              <ListTodo className="text-white" size={18} />
             </div>
             <h1 className="text-xl font-bold text-text">TaskFlow</h1>
           </div>
@@ -130,7 +148,7 @@ export default function DashboardPage() {
               Welcome back, <span className="text-primary">{user?.name?.split(" ")[0] || "there"}</span>
             </h2>
             <p className="text-text-secondary text-sm mt-2">
-              {pagination.total === 0
+              {stats.total === 0
                 ? "Create your first task to get started!"
                 : `You have ${stats.pending} pending and ${stats.overdue > 0 ? `${stats.overdue} overdue` : "0 overdue"} tasks today.`}
             </p>
@@ -140,7 +158,19 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats */}
-        <DashboardStats {...stats} />
+        <DashboardStats
+          stats={stats}
+          onStatClick={(filter) => {
+            setStatus(filter);
+            setPriority("");
+            setSort("newest");
+          }}
+        />
+
+        {/* Due Date Alerts */}
+        <DueDateAlerts
+          onTaskClick={(task) => { setEditingTask(task); setShowForm(true); }}
+        />
 
         {/* Filters + Create Button */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -161,7 +191,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Task List */}
-        {loading ? (
+          {loading ? (
           <Loading />
         ) : tasks.length === 0 ? (
           <div className="glass-strong rounded-2xl text-center py-16 px-6 animate-fade-in-up">
@@ -190,6 +220,7 @@ export default function DashboardPage() {
                   task={task}
                   onEdit={(t) => { setEditingTask(t); setShowForm(true); }}
                   onDelete={setDeleteTarget}
+                  onStatusChange={handleStatusChange}
                 />
               </div>
             ))}

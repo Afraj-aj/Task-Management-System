@@ -35,6 +35,14 @@ export interface LoginResponse {
   user: User;
 }
 
+export interface TaskStats {
+  total: number;
+  pending: number;
+  in_progress: number;
+  completed: number;
+  overdue: number;
+}
+
 export interface TaskFilters {
   search?: string;
   status?: string;
