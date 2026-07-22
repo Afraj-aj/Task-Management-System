@@ -1,3 +1,5 @@
+import { ClipboardList, Clock, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+
 interface StatsProps {
   total: number;
   pending: number;
@@ -8,22 +10,27 @@ interface StatsProps {
 
 export default function DashboardStats({ total, pending, inProgress, completed, overdue }: StatsProps) {
   const stats = [
-    { label: "Total Tasks", value: total, color: "bg-primary" },
-    { label: "Pending", value: pending, color: "bg-yellow-500" },
-    { label: "In Progress", value: inProgress, color: "bg-blue-500" },
-    { label: "Completed", value: completed, color: "bg-green-500" },
-    { label: "Overdue", value: overdue, color: "bg-red-500" },
+    { label: "Total", value: total, icon: ClipboardList, accent: "text-primary", bg: "bg-primary/10", glow: "glow-gold" },
+    { label: "Pending", value: pending, icon: Clock, accent: "text-yellow-600", bg: "bg-yellow-100", glow: "glow-yellow" },
+    { label: "In Progress", value: inProgress, icon: Loader2, accent: "text-blue-600", bg: "bg-blue-100", glow: "glow-blue" },
+    { label: "Completed", value: completed, icon: CheckCircle2, accent: "text-green-600", bg: "bg-green-100", glow: "glow-green" },
+    { label: "Overdue", value: overdue, icon: AlertCircle, accent: "text-red-600", bg: "bg-red-100", glow: "glow-red" },
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-      {stats.map((stat) => (
-        <div key={stat.label} className="bg-surface rounded-xl border border-border p-4">
-          <div className={`w-2 h-2 rounded-full ${stat.color} mb-2`} />
-          <p className="text-2xl font-bold text-text">{stat.value}</p>
-          <p className="text-text-secondary text-sm">{stat.label}</p>
-        </div>
-      ))}
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+      {stats.map((stat, i) => {
+        const Icon = stat.icon;
+        return (
+          <div key={stat.label} className={`glass rounded-2xl p-5 animate-fade-in-up delay-${i + 1} ${stat.glow} cursor-default`}>
+            <div className={`w-10 h-10 rounded-xl ${stat.bg} flex items-center justify-center mb-3`}>
+              <Icon className={stat.accent} size={20} />
+            </div>
+            <p className="text-3xl font-bold text-text">{stat.value}</p>
+            <p className="text-text-secondary text-sm mt-0.5">{stat.label}</p>
+          </div>
+        );
+      })}
     </div>
   );
 }

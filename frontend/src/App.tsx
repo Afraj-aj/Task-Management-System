@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import LoginPage from "./pages/LoginPage";
@@ -19,6 +20,15 @@ function App() {
             <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           </Routes>
         </BrowserRouter>
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          pauseOnHover
+          theme="colored"
+        />
       </AuthProvider>
     </ThemeProvider>
   );
