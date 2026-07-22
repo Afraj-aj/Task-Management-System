@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { type Task } from "../../types";
-import api from "../../api/axios";
+import { createTask, updateTask } from "../../services/taskService";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -50,7 +50,13 @@ export default function TaskForm({ task, onClose, onSuccess }: TaskFormProps) {
     setServerError("");
 
     try {
-      const payload: Record<string, unknown> = {
+      const payload: {
+        title: string;
+        description: string | null;
+        priority: string;
+        status: string;
+        due_date?: string;
+      } = {
         title: title.trim(),
         description: description.trim() || null,
         priority,
@@ -62,10 +68,10 @@ export default function TaskForm({ task, onClose, onSuccess }: TaskFormProps) {
       }
 
       if (isEditing) {
-        await api.put(`/tasks/${task.id}`, payload);
+        await updateTask(task.id, payload);
         toast.success("Task updated successfully!");
       } else {
-        await api.post("/tasks", payload);
+        await createTask(payload);
         toast.success("Task created successfully!");
       }
 
@@ -80,16 +86,16 @@ export default function TaskForm({ task, onClose, onSuccess }: TaskFormProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="glass-strong rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in-up">
-        <div className="flex items-center justify-between p-5 border-b border-border/30">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 sm:p-4 animate-fade-in">
+      <div className="glass-strong rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in-up">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border/30">
           <h2 className="text-lg font-bold text-text">{isEditing ? "Edit Task" : "Create Task"}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-bg-secondary text-text-secondary transition-colors">
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-bg-secondary text-text-secondary transition-colors">
             <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-4">
           {serverError && (
             <div className="bg-danger/10 text-danger p-3 rounded-xl text-sm">{serverError}</div>
           )}
@@ -109,7 +115,7 @@ export default function TaskForm({ task, onClose, onSuccess }: TaskFormProps) {
               rows={3} placeholder="Enter task description" />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-text mb-1">Priority *</label>
               <select value={priority} onChange={(e) => setPriority(e.target.value as any)}

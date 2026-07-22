@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import api from "../api/axios";
+import { login as loginApi } from "../services/authService";
 import { ListTodo } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -19,8 +19,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await api.post("/auth/login", { email, password });
-      const { token, user } = response.data.data;
+      const { token, user } = await loginApi(email, password);
       login(token, user);
       toast.success(`Welcome back, ${user.name}!`);
       navigate("/");
@@ -94,7 +93,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-text-secondary text-xs mt-6">
-          Demo: admin@taskflow.com / 123456
+          Demo: admin@test.com / 123456
         </p>
       </div>
     </div>

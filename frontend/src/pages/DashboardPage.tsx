@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import api from "../api/axios";
+import { getTasks, getTaskStats, deleteTask, updateTask } from "../services/taskService";
 import { type Task, type TaskStats, type Pagination as PaginationType } from "../types";
 import { Plus, LogOut, Moon, Sun, ListTodo, ClipboardList } from "lucide-react";
 import { toast } from "react-toastify";
@@ -33,19 +33,14 @@ export default function DashboardPage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Task | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [alertRefreshKey, setAlertRefreshKey] = useState(0);
 
   const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
-      const params: Record<string, string | number> = { page, limit: 10 };
-      if (search) params.search = search;
-      if (status) params.status = status;
-      if (priority) params.priority = priority;
-      if (sort) params.sort = sort;
-
-      const response = await api.get("/tasks", { params });
-      setTasks(response.data.data);
-      setPagination(response.data.pagination);
+      const result = await getTasks({ page, limit: 10, search, status, priority, sort });
+      setTasks(result.data);
+      setPagination(result.pagination);
     } catch {
       // error handled silently
     } finally {
@@ -55,8 +50,7 @@ export default function DashboardPage() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const response = await api.get("/tasks/stats");
-      setStats(response.data.data);
+      setStats(await getTaskStats());
     } catch {
       // error handled silently
     }
@@ -75,11 +69,12 @@ export default function DashboardPage() {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await api.delete(`/tasks/${deleteTarget.id}`);
+      await deleteTask(deleteTarget.id);
       toast.success("Task deleted successfully!");
       setDeleteTarget(null);
       fetchTasks();
       fetchStats();
+      setAlertRefreshKey((k) => k + 1);
     } catch (err: any) {
       const msg = err.response?.data?.message || "Failed to delete task";
       toast.error(msg);
@@ -93,14 +88,16 @@ export default function DashboardPage() {
     setEditingTask(null);
     fetchTasks();
     fetchStats();
+    setAlertRefreshKey((k) => k + 1);
   };
 
   const handleStatusChange = async (task: Task, newStatus: string) => {
     try {
-      await api.put(`/tasks/${task.id}`, { status: newStatus });
+      await updateTask(task.id, { status: newStatus });
       toast.success(`Task marked as ${newStatus}`);
       fetchTasks();
       fetchStats();
+      setAlertRefreshKey((k) => k + 1);
     } catch (err: any) {
       const msg = err.response?.data?.message || "Failed to update status";
       toast.error(msg);
@@ -139,15 +136,15 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 relative">
         {/* Welcome Banner */}
-        <div className="glass-strong rounded-2xl p-6 mb-8 animate-fade-in-up relative overflow-hidden glow-gold">
+        <div className="glass-strong rounded-2xl p-4 sm:p-6 mb-6 sm:mb-8 animate-fade-in-up relative overflow-hidden glow-gold">
           <div className="relative z-10">
-            <p className="text-text-secondary text-sm">{greeting()}</p>
-            <h2 className="text-2xl font-bold text-text mt-1">
+            <p className="text-text-secondary text-xs sm:text-sm">{greeting()}</p>
+            <h2 className="text-lg sm:text-2xl font-bold text-text mt-1">
               Welcome back, <span className="text-primary">{user?.name?.split(" ")[0] || "there"}</span>
             </h2>
-            <p className="text-text-secondary text-sm mt-2">
+            <p className="text-text-secondary text-xs sm:text-sm mt-2">
               {stats.total === 0
                 ? "Create your first task to get started!"
                 : `You have ${stats.pending} pending and ${stats.overdue > 0 ? `${stats.overdue} overdue` : "0 overdue"} tasks today.`}
@@ -170,23 +167,22 @@ export default function DashboardPage() {
         {/* Due Date Alerts */}
         <DueDateAlerts
           onTaskClick={(task) => { setEditingTask(task); setShowForm(true); }}
+          refreshKey={alertRefreshKey}
         />
 
         {/* Filters + Create Button */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="flex-1">
-            <TaskFilters
-              search={search} status={status} priority={priority} sort={sort}
-              onSearchChange={setSearch} onStatusChange={setStatus}
-              onPriorityChange={setPriority} onSortChange={setSort}
-            />
-          </div>
+        <div className="mb-6 space-y-3">
+          <TaskFilters
+            search={search} status={status} priority={priority} sort={sort}
+            onSearchChange={setSearch} onStatusChange={setStatus}
+            onPriorityChange={setPriority} onSortChange={setSort}
+          />
           <button
             onClick={() => { setEditingTask(null); setShowForm(true); }}
-            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl font-medium hover:bg-primary-hover glow-gold active:scale-100"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl font-medium hover:bg-primary-hover glow-gold active:scale-100"
           >
             <Plus size={18} />
-            <span className="hidden sm:inline">New Task</span>
+            New Task
           </button>
         </div>
 
@@ -194,7 +190,7 @@ export default function DashboardPage() {
           {loading ? (
           <Loading />
         ) : tasks.length === 0 ? (
-          <div className="glass-strong rounded-2xl text-center py-16 px-6 animate-fade-in-up">
+          <div className="glass-strong rounded-2xl text-center py-10 sm:py-16 px-4 sm:px-6 animate-fade-in-up">
             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-float">
               <ClipboardList className="text-primary" size={32} />
             </div>
