@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import DashboardStats from "../components/dashboard/DashboardStats";
 import DueDateAlerts from "../components/dashboard/DueDateAlerts";
 import TaskCard from "../components/tasks/TaskCard";
+import TaskDetail from "../components/tasks/TaskDetail";
 import TaskForm from "../components/tasks/TaskForm";
 import TaskFilters from "../components/tasks/TaskFilters";
 import ConfirmModal from "../components/common/ConfirmModal";
@@ -35,6 +36,7 @@ export default function DashboardPage() {
   const [deleteTarget, setDeleteTarget] = useState<Task | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [alertRefreshKey, setAlertRefreshKey] = useState(0);
+  const [viewingTask, setViewingTask] = useState<Task | null>(null);
 
   const fetchTasks = useCallback(async () => {
     setLoading(true);
@@ -173,7 +175,7 @@ export default function DashboardPage() {
 
         {/* Due Date Alerts */}
         <DueDateAlerts
-          onTaskClick={(task) => { setEditingTask(task); setShowForm(true); }}
+          onTaskClick={(task) => setViewingTask(task)}
           refreshKey={alertRefreshKey}
         />
 
@@ -226,6 +228,7 @@ export default function DashboardPage() {
                   onEdit={(t) => { setEditingTask(t); setShowForm(true); }}
                   onDelete={setDeleteTarget}
                   onStatusChange={handleStatusChange}
+                  onView={(t) => setViewingTask(t)}
                 />
               </div>
             ))}
@@ -251,6 +254,13 @@ export default function DashboardPage() {
           onConfirm={handleDelete}
           onCancel={() => setDeleteTarget(null)}
           loading={deleting}
+        />
+      )}
+      {viewingTask && (
+        <TaskDetail
+          task={viewingTask}
+          onClose={() => setViewingTask(null)}
+          onEdit={(t) => { setViewingTask(null); setEditingTask(t); setShowForm(true); }}
         />
       )}
     </div>

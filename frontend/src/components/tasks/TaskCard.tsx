@@ -6,6 +6,7 @@ interface TaskCardProps {
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
   onStatusChange: (task: Task, newStatus: string) => void;
+  onView: (task: Task) => void;
 }
 
 const priorityConfig = {
@@ -32,23 +33,25 @@ function getDueDateStyle(dueDate: string, status: string) {
   return "text-text-secondary";
 }
 
-export default function TaskCard({ task, onEdit, onDelete, onStatusChange }: TaskCardProps) {
+export default function TaskCard({ task, onEdit, onDelete, onStatusChange, onView }: TaskCardProps) {
   const pConfig = priorityConfig[task.priority];
   const isOverdue = task.status !== "Completed" && new Date(task.due_date) < new Date(new Date().toDateString());
   const dueDateStyle = getDueDateStyle(task.due_date, task.status);
 
   return (
-    <div className={`glass rounded-2xl p-3 sm:p-5 border-l-4 ${pConfig.border} animate-fade-in-up ${isOverdue ? "ring-1 ring-red-300 dark:ring-red-800" : ""}`}>
+    <div className={`glass rounded-2xl p-3 sm:p-5 border-l-4 ${pConfig.border} animate-fade-in-up cursor-pointer hover:bg-white/10 transition-colors ${isOverdue ? "ring-1 ring-red-300 dark:ring-red-800" : ""}`}
+      onClick={() => onView(task)}
+    >
       <div className="flex items-start justify-between mb-2 sm:mb-3">
         <h3 className="font-semibold text-text text-sm sm:text-base leading-tight flex-1 mr-2">
           {isOverdue && <AlertTriangle size={14} className="inline mr-1 text-red-500" />}
           {task.title}
         </h3>
         <div className="flex gap-0.5 opacity-60 hover:opacity-100 transition-opacity">
-          <button onClick={() => onEdit(task)} className="p-2 sm:p-1.5 rounded-lg hover:bg-bg-secondary text-text-secondary transition-colors">
+          <button onClick={(e) => { e.stopPropagation(); onEdit(task); }} className="p-2 sm:p-1.5 rounded-lg hover:bg-bg-secondary text-text-secondary transition-colors">
             <Pencil size={16} />
           </button>
-          <button onClick={() => onDelete(task)} className="p-2 sm:p-1.5 rounded-lg hover:bg-red-100 text-text-secondary hover:text-danger transition-colors">
+          <button onClick={(e) => { e.stopPropagation(); onDelete(task); }} className="p-2 sm:p-1.5 rounded-lg hover:bg-red-100 text-text-secondary hover:text-danger transition-colors">
             <Trash2 size={16} />
           </button>
         </div>
@@ -66,6 +69,7 @@ export default function TaskCard({ task, onEdit, onDelete, onStatusChange }: Tas
         <select
           value={task.status}
           onChange={(e) => onStatusChange(task, e.target.value)}
+          onClick={(e) => e.stopPropagation()}
           className={`text-[11px] sm:text-xs font-medium px-2 sm:px-2 py-0.5 sm:py-1 rounded-full border-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50 ${
             task.status === "Completed"
               ? "bg-green-100 text-green-700"
