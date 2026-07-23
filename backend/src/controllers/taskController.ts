@@ -223,7 +223,8 @@ export async function getDueSoon(req: AuthRequest, res: Response) {
       `SELECT * FROM tasks
        WHERE user_id = $1
          AND status != 'Completed'
-         AND due_date <= NOW() + INTERVAL '1 day'
+         AND due_date + INTERVAL '1 day' > NOW()
+         AND due_date + INTERVAL '1 day' <= NOW() + INTERVAL '1 day'
        ORDER BY due_date ASC`,
       [userId]
     );

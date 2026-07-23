@@ -4,10 +4,14 @@ import { getDueSoonTasks } from "../../services/taskService";
 import { Clock, ChevronRight, X } from "lucide-react";
 
 function getTimeLeft(dueDate: string): string {
-  const diffMs = new Date(dueDate).getTime() - Date.now();
+  // Set to end of day (23:59:59) since due date means deadline is end of that day
+  const due = new Date(dueDate);
+  due.setHours(23, 59, 59, 999);
+  const diffMs = due.getTime() - Date.now();
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
 
+  if (diffMins < 0) return "Overdue";
   if (diffMins < 60) return `${diffMins}m left`;
   if (diffHours < 24) return `${diffHours}h left`;
   return "Tomorrow";
