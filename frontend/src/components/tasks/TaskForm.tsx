@@ -86,8 +86,8 @@ export default function TaskForm({ task, onClose, onSuccess }: TaskFormProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 sm:p-4 animate-fade-in">
-      <div className="glass-strong rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in-up">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+      <div className="glass-strong rounded-2xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in-up">
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border/30">
           <h2 className="text-lg font-bold text-text">{isEditing ? "Edit Task" : "Create Task"}</h2>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-bg-secondary text-text-secondary transition-colors">

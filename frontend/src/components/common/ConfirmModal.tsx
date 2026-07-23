@@ -10,8 +10,8 @@ interface ConfirmModalProps {
 
 export default function ConfirmModal({ title, message, onConfirm, onCancel, loading }: ConfirmModalProps) {
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 sm:p-4 animate-fade-in">
-      <div className="glass-strong rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm p-5 sm:p-6 animate-fade-in-up glow-red">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+      <div className="glass-strong rounded-2xl w-full sm:max-w-sm p-5 sm:p-6 animate-fade-in-up glow-red">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
             <AlertTriangle className="text-danger" size={22} />
