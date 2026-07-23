@@ -28,6 +28,7 @@ export default function DashboardPage() {
   const [priority, setPriority] = useState("");
   const [sort, setSort] = useState("newest");
   const [page, setPage] = useState(1);
+  const [overdue, setOverdue] = useState("");
 
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -38,7 +39,7 @@ export default function DashboardPage() {
   const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await getTasks({ page, limit: 10, search, status, priority, sort });
+      const result = await getTasks({ page, limit: 10, search, status, priority, sort, overdue });
       setTasks(result.data);
       setPagination(result.pagination);
     } catch {
@@ -46,7 +47,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, status, priority, sort, page]);
+  }, [search, status, priority, sort, page, overdue]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -63,7 +64,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, status, priority, sort]);
+  }, [search, status, priority, sort, overdue]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -158,7 +159,13 @@ export default function DashboardPage() {
         <DashboardStats
           stats={stats}
           onStatClick={(filter) => {
-            setStatus(filter);
+            if (filter === "overdue") {
+              setOverdue("true");
+              setStatus("");
+            } else {
+              setOverdue("");
+              setStatus(filter);
+            }
             setPriority("");
             setSort("newest");
           }}
@@ -174,8 +181,10 @@ export default function DashboardPage() {
         <div className="mb-6 space-y-3">
           <TaskFilters
             search={search} status={status} priority={priority} sort={sort}
-            onSearchChange={setSearch} onStatusChange={setStatus}
-            onPriorityChange={setPriority} onSortChange={setSort}
+            onSearchChange={setSearch}
+            onStatusChange={(v) => { setStatus(v); setOverdue(""); }}
+            onPriorityChange={(v) => { setPriority(v); setOverdue(""); }}
+            onSortChange={setSort}
           />
           <button
             onClick={() => { setEditingTask(null); setShowForm(true); }}

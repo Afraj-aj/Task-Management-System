@@ -50,4 +50,5 @@ export interface TaskFilters {
   sort?: string;
   page?: number;
   limit?: number;
+  overdue?: string;
 }

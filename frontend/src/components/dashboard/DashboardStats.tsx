@@ -12,7 +12,7 @@ export default function DashboardStats({ stats, onStatClick }: StatsProps) {
     { key: "pending", label: "Pending", value: stats.pending, icon: Clock, accent: "text-yellow-600", bg: "bg-yellow-100", glow: "glow-yellow", filter: "Pending" },
     { key: "in_progress", label: "In Progress", value: stats.in_progress, icon: Loader2, accent: "text-blue-600", bg: "bg-blue-100", glow: "glow-blue", filter: "In Progress" },
     { key: "completed", label: "Completed", value: stats.completed, icon: CheckCircle2, accent: "text-green-600", bg: "bg-green-100", glow: "glow-green", filter: "Completed" },
-    { key: "overdue", label: "Overdue", value: stats.overdue, icon: AlertCircle, accent: "text-red-600", bg: "bg-red-100", glow: "glow-red", filter: "" },
+    { key: "overdue", label: "Overdue", value: stats.overdue, icon: AlertCircle, accent: "text-red-600", bg: "bg-red-100", glow: "glow-red", filter: "overdue" },
   ];
 
   return (

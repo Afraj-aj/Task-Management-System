@@ -14,6 +14,7 @@ export async function getTasks(filters: TaskFilters = {}): Promise<TasksResponse
   if (filters.sort) params.sort = filters.sort;
   if (filters.page) params.page = filters.page;
   if (filters.limit) params.limit = filters.limit;
+  if (filters.overdue) params.overdue = filters.overdue;
 
   const response = await api.get("/tasks", { params });
   return { data: response.data.data, pagination: response.data.pagination };

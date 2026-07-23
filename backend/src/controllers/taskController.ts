@@ -27,7 +27,7 @@ const updateTaskSchema = z.object({
 export async function getTasks(req: AuthRequest, res: Response) {
   try {
     const userId = req.user!.userId;
-    const { search, status, priority, sort, page = "1", limit = "10" } = req.query as Record<string, string>;
+    const { search, status, priority, sort, page = "1", limit = "10", overdue } = req.query as Record<string, string>;
 
     // Build WHERE clause
     let whereClause = "WHERE user_id = $1";
@@ -53,6 +53,11 @@ export async function getTasks(req: AuthRequest, res: Response) {
       whereClause += ` AND priority = $${paramIndex}`;
       params.push(priority);
       paramIndex++;
+    }
+
+    // Filter overdue: due_date before today AND not completed
+    if (overdue === "true") {
+      whereClause += ` AND due_date < CURRENT_DATE AND status != 'Completed'`;
     }
 
     // Sort
